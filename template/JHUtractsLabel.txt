@@ -1,0 +1,20 @@
+1                        Ant. thalamic radiation L
+2                        Ant. thalamic radiation R
+3                            Corticospinal tract L
+4                            Corticospinal tract r
+5                     Cingulum (cingulate gyrus) L
+6                     Cingulum (cingulate gyrus) R
+7                         Cingulum (hippocampus) L
+8                         Cingulum (hippocampus) R
+9                                    Forceps major
+10                                   Forceps minor
+11              Inf. fronto-occipital fasciculus L
+12              Inf. fronto-occipital fasciculus R
+13                  Inf. longitudinal fasciculus L
+14                  Inf. longitudinal fasciculus R
+15                  Sup. longitudinal fasciculus L
+16                  Sup. longitudinal fasciculus R
+17                           Uncinate fasciculus L
+18                           Uncinate fasciculus R
+19 Sup. longitudinal  fasciculus (temporal part) L
+20 Sup. longitudinal  fasciculus (temporal part) R
