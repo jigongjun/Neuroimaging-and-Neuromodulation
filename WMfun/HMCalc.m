@@ -1,0 +1,41 @@
+function [HeadMotion FD_Jenkinson FD_VanDijk FD_Power]=HMCal(RPDir,MeanFunDir)
+     RP = load(RPDir) ;
+%      [path aname b] = fileparts(RPDir) 
+       MaxRP = max(abs(RP));
+       MaxRP(4:6) = MaxRP(4:6)*180/pi;
+            
+       MeanRP = mean(abs(RP));
+       MeanRP(4:6) = MeanRP(4:6)*180/pi;
+%Calculate FD Van Dijk (Van Dijk, K.R., Sabuncu, M.R., Buckner, R.L., 2012. The influence of head motion on intrinsic functional connectivity MRI. Neuroimage 59, 431-438.)
+       RPRMS = sqrt(sum(RP(:,1:3).^2,2));
+       MeanRMS = mean(RPRMS);
+            
+       FD_VanDijk = abs(diff(RPRMS));
+       FD_VanDijk = [0;FD_VanDijk];
+       MeanFD_VanDijk = mean(FD_VanDijk);
+%Calculate FD Power (Power, J.D., Barnes, K.A., Snyder, A.Z., Schlaggar, B.L., Petersen, S.E., 2012. Spurious but systematic correlations in functional connectivity MRI networks arise from subject motion. Neuroimage 59, 2142-2154.) 
+       RPDiff=diff(RP);
+       RPDiff=[zeros(1,6);RPDiff];
+       RPDiffSphere=RPDiff;
+       RPDiffSphere(:,4:6)=RPDiffSphere(:,4:6)*50;
+       FD_Power=sum(abs(RPDiffSphere),2);
+       MeanFD_Power = mean(FD_Power);
+       NumberFD_Power_05 = length(find(FD_Power>0.5));
+       PercentFD_Power_05 = length(find(FD_Power>0.5)) / length(FD_Power);
+       NumberFD_Power_02 = length(find(FD_Power>0.2));
+       PercentFD_Power_02 = length(find(FD_Power>0.2)) / length(FD_Power);
+      
+%Calculate FD Jenkinson (FSL's relative RMS) (Jenkinson, M., Bannister, P., Brady, M., Smith, S., 2002. Improved optimization for the robust and accurate linear registration and motion correction of brain images. Neuroimage 17, 825-841. Jenkinson, M. 1999. Measuring transformation error by RMS deviation. Internal Technical Report TR99MJ1, FMRIB Centre, University of Oxford. Available at www.fmrib.ox.ac.uk/analysis/techrep for downloading.)
+       DirMean=dir(MeanFunDir);
+       RefFile=[DirMean(1).name];
+       FD_Jenkinson = y_FD_Jenkinson(RPDir,MeanFunDir);
+       MeanFD_Jenkinson = mean(FD_Jenkinson);
+      HeadMotion =  [MaxRP,MeanRP,MeanRMS,MeanFD_VanDijk,MeanFD_Power,NumberFD_Power_05,PercentFD_Power_05,NumberFD_Power_02,PercentFD_Power_02,MeanFD_Jenkinson];
+       
+      
+        
+        
+        
+        
+        
+        

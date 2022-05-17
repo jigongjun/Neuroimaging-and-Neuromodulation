@@ -1,0 +1,121 @@
+function TrackQC(DTIdir,T1dir,FunDir,imgname)
+%% save fig for QC, subjet specific 
+% AFQ software and data on your local machine.
+if nargin==2
+    imgname=[];
+    FunDir=[];
+elseif nargin==0
+    DTIdir = uigetdir([],'Select the DTIImg/subjects folder') ;
+    T1dir = uigetdir([],'Select the T1Img folder') ;
+    FunAns = questdlg ('QC for functional images?','','Yes','No','No') ; 
+    if strcmp(FunAns,'Yes')
+       FunDir = uigetdir([],'Select the folder with functional measures (e.g., ALFF)') ;
+       imgname = inputdlg;
+    else
+        FunDir = [];
+        imgname = [] ;
+    end
+end
+
+trackname= {'Left Thalmic Radiation','Right Thalmic Radiation'...
+    'Left Corticospinal','Right Corticospinal', ...
+    'Left Cingulum Cingulate','Right Cingulum Cingulate', ...
+    'Left Cingulum Hippocampus',  'Right Cingulum Hippocampus',...
+    'Callosum Forceps Major','Callosum Forceps Minor',...
+    'Left IFOF','Right IFOF',...
+    'Left ILF','Right ILF',...
+    'Left SLF','Right SLF',...
+    'Left Uncinate','Right Uncinate'...
+    'Left Arcuate','Right Arcuate'};
+roi1= {'ATR_roi1_L.mat','ATR_roi1_R.mat'...
+    'CST_roi1_L.mat','CST_roi1_R.mat', ...
+    'CGC_roi1_L.mat','CGC_roi1_R.mat', ...
+    'HCC_roi1_L.mat',  'HCC_roi1_R.mat',...
+    'FP_L.mat','FA_L.mat',...
+    'IFO_roi1_L.mat','IFO_roi1_R.mat',...
+    'ILF_roi1_L.mat','ILF_roi1_R.mat',...
+    'SLF_roi1_L.mat','SLF_roi1_R.mat',...
+    'UNC_roi1_L.mat','UNC_roi1_R.mat'...
+    'SLF_roi2_L.mat','SLF_roi2_R.mat'};
+roi2= {'ATR_roi2_L.mat','ATR_roi2_R.mat'...
+    'CST_roi2_L.mat','CST_roi2_R.mat', ...
+    'CGC_roi2_L.mat','CGC_roi2_R.mat', ...
+    'HCC_roi2_L.mat',  'HCC_roi2_R.mat',...
+    'FP_R.mat','FA_R.mat',...
+    'IFO_roi2_L.mat','IFO_roi2_R.mat',...
+    'ILF_roi2_L.mat','ILF_roi2_R.mat',...
+    'SLF_roi2_L.mat','SLF_roi2_R.mat',...
+    'UNC_roi2_L.mat','UNC_roi2_R.mat'...
+    'SLFt_roi2_L.mat','SLFt_roi2_R.mat'};
+
+% DTIdir
+dt = dtiLoadDt6([DTIdir,filesep,'dt6.mat']);
+b0 = readFileNifti([T1dir,filesep,'ac_coT1B.nii']);
+load([DTIdir,filesep,'TractRes',filesep,'fg_clean.mat']);
+
+if ~size(imgname,1)
+  load([DTIdir,filesep,'TractRes',filesep,'FA.mat']) ;
+  mkdir([DTIdir,filesep,'TrackFAQC']) ;
+  outfd = 'TrackFAQC' 
+  imgnii = [FunDir, filesep, imgname] 
+  
+   for kk = 1 :  2
+     if ~isnan(FA(:,kk))
+       if rem(kk,2)
+           kk
+         AFQ_RenderFibers(fg_clean(kk),'dt',dt,'numfibers',400,'tubes',0,...
+         'color',[0.8 0.8 0],'rois',roi1{kk},roi2{kk}) ;
+         AFQ_AddImageTo3dPlot(b0,[-2, 0, 0]);
+       else
+           kk
+         AFQ_RenderFibers(fg_clean(kk),'dt',dt,'numfibers',400,'tubes',0,...
+         'color',[0.8 0.8 0],'rois',roi1{kk},roi2{kk},'camera','rightsag');
+         AFQ_AddImageTo3dPlot(b0,[2, 0, 0]);
+       end
+         
+%          I=getframe(gcf);
+%          imwrite (I.cdata,[DTIdir,filesep,outfd,filesep,[trackname{1,kk} '.bmp']]);
+         export_fig ([DTIdir,filesep,outfd,filesep,[trackname{1,kk},'.png']]);
+           close(figure) ;
+         
+     end
+   end
+
+else
+   temppath1 = [DTIdir,filesep,'TractRes',filesep,strcat(imgname, '.mat')]
+  load([DTIdir,filesep,'TractRes',filesep,strcat(imgname, '.mat')]) ;
+  mkdir([DTIdir,filesep,['Track' imgname 'QC']]) ;  
+  outfd = ['Track' imgname 'QC'] ;
+  MsImgList = dir([FunDir,filesep,[imgname '*.nii']])
+  MsImg = niftiRead ([FunDir,filesep,MsImgList(1).name]) ;
+  for kk = 1 :  20
+    if ~isnan(FlexM(:,kk)) 
+        figure
+      ROI1 = dtiReadRoi([DTIdir,filesep,'ROIs',filesep,roi1{kk}]) ;
+      ROI2 = dtiReadRoi([DTIdir,filesep,'ROIs',filesep,roi2{kk}]) ;
+      if rem(kk,2)
+         AFQ_RenderFibers(fg_clean(kk),'dt',MsImg,'numfibers',400,'tubes',0,...
+         'color',[0.8 0.8 0],'rois',roi1,roi2,'crange',...
+         [min(FlexM(:,kk)) max(FlexM(:,kk))-std(FlexM(:,kk))]);
+         AFQ_AddImageTo3dPlot(b0,[-2, 0, 0]);
+      else
+         AFQ_RenderFibers(fg_clean(kk),'dt',MsImg,'numfibers',400,'tubes',0,...
+         'color',[0.8 0.8 0],'rois',roi1,roi2,'crange',...
+         [min(FlexM(:,kk)) max(FlexM(:,kk))-std(FlexM(:,kk))],...
+         'camera','rightsag');
+         AFQ_AddImageTo3dPlot(b0,[2, 0, 0]);
+      end
+    
+      I=getframe(gcf);
+      imwrite (I.cdata,[DTIdir,filesep,outfd,filesep,[trackname{1,kk} '.bmp']]);
+      close(figure(1)) ;
+    end
+  end
+
+end
+
+  
+  
+  
+  
+  

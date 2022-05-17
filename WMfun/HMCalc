@@ -1,0 +1,24 @@
+function HMCal
+
+%Calculate FD Van Dijk (Van Dijk, K.R., Sabuncu, M.R., Buckner, R.L., 2012. The influence of head motion on intrinsic functional connectivity MRI. Neuroimage 59, 431-438.)
+       RPRMS = sqrt(sum(RP(:,1:3).^2,2));
+       MeanRMS = mean(RPRMS);
+            
+       FD_VanDijk = abs(diff(RPRMS));
+       FD_VanDijk = [0;FD_VanDijk];
+       save([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'FD_VanDijk.txt'], 'FD_VanDijk', '-ASCII', '-DOUBLE','-TABS');
+       MeanFD_VanDijk = mean(FD_VanDijk);
+   
+   %Calculate FD Power (Power, J.D., Barnes, K.A., Snyder, A.Z., Schlaggar, B.L., Petersen, S.E., 2012. Spurious but systematic correlations in functional connectivity MRI networks arise from subject motion. Neuroimage 59, 2142-2154.) 
+       RPDiff=diff(RP);
+       RPDiff=[zeros(1,6);RPDiff];
+       RPDiffSphere=RPDiff;
+       RPDiffSphere(:,4:6)=RPDiffSphere(:,4:6)*50;
+       FD_Power=sum(abs(RPDiffSphere),2);
+       save([[DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'FD_Power.txt'], 'FD_Power', '-ASCII', '-DOUBLE','-TABS');
+            MeanFD_Power = mean(FD_Power);
+            
+            NumberFD_Power_05 = length(find(FD_Power>0.5));
+            PercentFD_Power_05 = length(find(FD_Power>0.5)) / length(FD_Power);
+            NumberFD_Power_02 = length(find(FD_Power>0.2));
+            PercentFD_Power_02 = length(find(FD_Power>0.2)) / length(FD_Power);

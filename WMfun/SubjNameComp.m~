@@ -1,0 +1,21 @@
+function SubjNameComp(T1ImgDir,FunImgDir)
+   uigetfile
+   [DataDirT1  T1Img cc] = fileparts(T1ImgDir) ;
+   [DataDirFun  FunImg cc] = fileparts(FunImgDir) ;
+   T1Img
+   [DataDirT1,filesep,T1Img]
+    t1list = dir([DataDirT1,filesep,T1Img]) 
+    funlist = dir([DataDirFun,filesep,FunImg]) 
+    for i = 3  : length(t1list)
+       dif(i-2,1) = strcomp(t1list(i).name,funlist(i).name)
+    end
+    [a b] = find(dif==0) ;
+    if size(a,1)
+      fprintf('\n Please check these names: \n') 
+      for i = 1  : size(a,1)
+      disp(t1list(a(i)+2).name)
+      end
+    else
+      fprintf('\n Subject in the two folders have the same name \n')   
+    end
+
