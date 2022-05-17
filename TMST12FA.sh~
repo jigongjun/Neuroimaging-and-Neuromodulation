@@ -1,0 +1,2 @@
+flirt -in dataB -ref FA -out dataBR -omat T12FA.mat
+convert_xfm -omat FA2T1.mat -inverse T12FA.mat

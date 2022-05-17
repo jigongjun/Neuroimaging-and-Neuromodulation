@@ -1,0 +1,21 @@
+#cat sublist
+module load python/3.6.1
+module load gcc/6.2.0
+txt=$1 # subject list
+dir1=$2 # dir with subject fold containing co*.nii
+dir2=$3 # output dir
+
+sublist=${txt}
+
+export sourcedir=${dir1}
+export SUBJECTS_DIR=${dir2}
+
+for sub in `cat ${sublist}`
+
+do
+   echo -------${sub}--------
+   #cd ${SUBJECTS_DIR}
+    #colist=$(ls ${sourcedir}/${sub}/co*)
+   #echo -------${colist}--------
+    recon-all -i ${sourcedir}/${sub}/co* -s ${SUBJECTS_DIR}/${sub} -all
+done

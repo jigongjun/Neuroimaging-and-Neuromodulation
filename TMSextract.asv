@@ -1,0 +1,35 @@
+function TMSextract (DataDir,MaskDir)  
+% DataDir - folder containing nii images. e.g. D:\test
+% MaskDir - image dir. e.g. D:\gray.nii
+
+ ImgList = dir([DataDir,filesep,'*.nii']) ;
+   ImgHeader = spm_vol([DataDir,filesep,ImgList(1).name]) ;
+   [ImgVol,ImgXYZ] = spm_read_vols(ImgHeader)  ;   
+   Vol4d(:,:,:,1) = ImgVol ;
+    for i = 1  : length(ImgList)
+        ImgHeader = spm_vol([DataDir,filesep,ImgList(i).name]) ;
+        [ImgVol,ImgXYZ] = spm_read_vols(ImgHeader)  ;
+        Vol4d(:,:,:,i) = ImgVol ;
+    end 
+    [dim1 dim2 dim3 dim4] =  size(Vol4d)  ;
+    Vol4d = reshape(Vol4d,[],dim4) ;
+    
+  MaskHeader = spm_vol(MaskDir) ;
+  [MaskVol,MaskXYZ] = spm_read_vols(MaskHeader)  ;
+  MaskVol = reshape(MaskVol,[],1) ;
+%   if ~(size(MaskVol)==size(ImgVol))
+%     fprintf('\n\tThe dimention is not consistent between data and mask\n');  
+%   end
+  
+for i = 1  : dim4
+  MaskValue = MaskVol.*Vol4d(:,i);
+  signal(i,1) = mean(MaskValue(find(MaskValue))); 
+end
+  
+  
+        MaskHeader.fname = [DataDir,filesep,'FunImgARWSDF',filesep,strcat('f',ImgList(i).name)] ;
+        spm_write_vol(dswraHeader,Vol4d(:,:,:,i)) ; 
+
+
+
+

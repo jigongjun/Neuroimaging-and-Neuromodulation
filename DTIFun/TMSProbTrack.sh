@@ -1,0 +1,1 @@
+probtrackx2 -x Results/SeedImage_NaSp.nii -l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd -s DTIImgBCF.bedpostX/merged -m DTIImgBCF.bedpostX/nodif_brain_mask --dir=Results --waypoints=Results/TargetImage_NaSp.nii --waycond=AND
