@@ -536,6 +536,7 @@ if get(handles.checkbox5,'value')
        RP=load([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'rp_fundata.txt'])  ;
        degreeRP = RP;
        degreeRP(:,4:6) = RP(:,4:6)*180/pi;
+       save ([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'rp_fundataPI.txt'], 'degreeRP', '-ascii') ;
        figure;
        plot(degreeRP);
        I=getframe(gcf);
