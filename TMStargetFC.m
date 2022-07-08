@@ -813,7 +813,7 @@ if get (handles.ckbM,'value')
              [head3 data3] = TMSReadNii([inifd,filesep,RunList(1).name,filesep,'fundata.nii']) ;
              data3=(data3-repmat(mean(data3')',[1,size(data3,2)]));
              for c = 2 :  length(RunList) % joint all sessions   
-                [head4 data4] = TMSReadNii([inifd,filesep,RunList(c-1).name,filesep,'fundata.nii']) ;
+                [head4 data4] = TMSReadNii([inifd,filesep,RunList(c).name,filesep,'fundata.nii']) ;
                 data4=(data4-repmat(mean(data4')',[1,size(data4,2)]));
                 data3 = [data3 data4] ;
              end 
