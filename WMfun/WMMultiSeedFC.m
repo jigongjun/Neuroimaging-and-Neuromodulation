@@ -61,7 +61,7 @@ else
     [seeddirx,seedname,cc] = fileparts (SeedDir) ;
      shead  = spm_vol(SeedDir) ;
            if dim2~=shead.dim(2)
-              sdata=TMSreslice(FunDir,SeedDir,[],0) ;
+              sdata=TMSreslice(FunDir,SeedDir,[],1,0) ;
               sdata=reshape(sdata,dim1*dim2*dim3,1);
            else
               [shead sdata] = TMSReadNii(SeedDir)  ;
@@ -69,7 +69,7 @@ else
 
         mhead  = spm_vol(MaskDir) ;
            if dim2~=mhead.dim(2)
-              mdata=TMSreslice(FunDir,MaskDir,[],0) ;
+              mdata=TMSreslice(FunDir,MaskDir,[],1,0) ;
               mdata=reshape(mdata,dim1*dim2*dim3,1);
            else
               [mhead mdata] = TMSReadNii(MaskDir) ;
@@ -92,6 +92,6 @@ else
     
     if length(OutDir)
     TMSWriteNii(FCMapOut,...
-        shead,[OutDir,filesep,seedname '_zFCmap.nii']);
+        funhead(1,1),[OutDir,filesep,seedname '_zFCmap.nii']);
     end
 end
