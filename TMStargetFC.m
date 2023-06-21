@@ -161,7 +161,7 @@ set(handles.checkbox17,'string','FC','backgroundcolor',[0.94 0.94 0.94],...
                   'ForegroundColor',[0 0 0],'fontsize',10,'unit','normalized','pos',[0.02 0.13 0.1 0.15])
 set(handles.checkbox18,'string','Target','backgroundcolor',[0.94 0.94 0.94],...
                   'ForegroundColor',[0 0 0],'fontsize',10,'unit','normalized','pos',[0.3 0.13 0.125 0.15])
-set(handles.edit15,'string','4','backgroundcolor',[0.94 0.94 0.94],'enable','off',...
+set(handles.edit15,'string','25','backgroundcolor',[0.94 0.94 0.94],'enable','off',...
                   'ForegroundColor',[0 0 0],'fontsize',10,'unit','normalized','pos',[0.2 0.13 0.06 0.13])
 set(handles.text15,'string','Depth','backgroundcolor',[0.94 0.94 0.94],'enable','off',...
                   'ForegroundColor',[0 0 0],'fontsize',10,'unit','normalized','pos',[0.12 0.12 0.08 0.15])
@@ -382,14 +382,15 @@ if get(handles.checkbox13,'value')
     
   else 
     cd([ProgramPath,filesep,'DCM2NII']);
-    for i = 1 : length(subj)
+ for i = 1 : length(subj)
        %% change gz to hdr/img and BET in window
        eval([['!' ProgramPath,filesep,'DCM2NII',filesep 'dcm2nii.exe '],...
                [ '-b ' ProgramPath,filesep,'DCM2NII',filesep,'TMSdcm2img.ini'],...
                [' -o ',fullfile(DataDir,'T1Img',subj{i})],' ',...
                [fullfile(DataDir,'T1Img',subj{i},'ac_coT1.nii.gz')]]);
        eval(['!BETWin.exe ',fullfile(DataDir,'T1Img',subj{i},'fac_coT1.img'),' ',fullfile(DataDir,'T1Img',subj{i},'ac_coT1B'),' -f 0.2']);
-       %% change hdr/img to nii
+     %% change hdr/img to nii
+       
        [head data] = TMSReadNii(fullfile(DataDir,'T1Img',subj{i},'ac_coT1B.img'));
        TMSWriteNii(reshape(data,head.dim(1),head.dim(2),head.dim(3)),head,fullfile(DataDir,'T1Img',subj{i},'ac_coT1B.nii')); 
        
@@ -398,6 +399,10 @@ if get(handles.checkbox13,'value')
         SouData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1B.nii'];
         OtherData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1B.nii'];
         TMScoregister(RefData,SouData,OtherData);
+        
+        [refhead data] = TMSReadNii(RefData); % added 20220828 to make sure the left and right hemispheres were shown correctly
+        [headB dataB] = TMSReadNii(OtherData); % added 20220828
+        TMSWriteNii(reshape(dataB,refhead.dim(1),refhead.dim(2),refhead.dim(3)),refhead,OtherData) ; % added 20220828
         
        delete(fullfile(DataDir,'T1Img',subj{i},'ac_coT1B.img'))
        delete(fullfile(DataDir,'T1Img',subj{i},'ac_coT1B.hdr'))
@@ -459,7 +464,7 @@ if get(handles.checkbox2,'value')
      TempImage = dir([DataDir,filesep,inifd,filesep,subj{i},filesep,'*.nii*']) ;
      [pathstr, name, ext] = fileparts([DataDir,filesep,inifd,filesep,subj{i},filesep,TempImage(1).name]) ;
      if strcmp(ext,'.nii')
-           [head,data] = TMSReadNii([DataDir,filesep,inifd,filesep,subj{i},filesep,TempImage(1).name]) ;
+           [head, data] = TMSReadNii([DataDir, filesep, inifd, filesep, subj{i}, filesep, TempImage(1).name]) ;
      elseif strcmp(ext,'.gz')
          TempImage(1).name
          gunzip([DataDir,filesep,inifd,filesep,subj{i},filesep,TempImage(1).name]) ;
@@ -536,7 +541,7 @@ if get(handles.checkbox5,'value')
        RP=load([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'rp_fundata.txt'])  ;
        degreeRP = RP;
        degreeRP(:,4:6) = RP(:,4:6)*180/pi;
-       save ([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'rp_fundataPI.txt'], 'degreeRP', '-ascii') ;
+       save ([DataDir,filesep,'HMparameter',filesep,subj{i},filesep,'rp_fundataPI.txt'], 'degreeRP', '-ascii') ; %% added 20220708 
        figure;
        plot(degreeRP);
        I=getframe(gcf);
@@ -600,7 +605,7 @@ if get(handles.checkbox6,'value')
         if exist([DataDir,filesep,inifd,filesep,subj{i},filesep,'fundata.nii'],'file')
         copyfile ([DataDir,filesep,inifd,filesep,subj{i},filesep,'fundata.nii'],...
                   [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii'])  ;
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i}(1:end-5),filesep,'ac_coT1B.nii']  ;
+        RefData = [DataDir,filesep,'T1Img',filesep,subj{i}(1:end-5),filesep,'ac_coT1.nii']  ;
         SouData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']     ;
         OtherData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']   ;
         TMScoregister(RefData,SouData,OtherData);
@@ -608,7 +613,7 @@ if get(handles.checkbox6,'value')
         imglist = dir([DataDir,filesep,inifd,filesep,subj{i},filesep,'*.nii']);  
         copyfile ([DataDir,filesep,inifd,filesep,subj{i},filesep,imglist(1).name],...
                   [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii'])  ;
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1B.nii']  ;
+        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1.nii']  ;
         SouData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']     ;
         OtherData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']   ;
         TMScoregister(RefData,SouData,OtherData);
@@ -618,7 +623,7 @@ if get(handles.checkbox6,'value')
         if exist([DataDir,filesep,inifd,filesep,subj{i},filesep,'fundata.nii'],'file')
         copyfile ([DataDir,filesep,inifd,filesep,subj{i},filesep,'fundata.nii'],...
                   [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii'])  ;
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1B.nii']  ;
+        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1.nii']  ;
         SouData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']     ;
         OtherData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']   ;
         TMScoregister(RefData,SouData,OtherData);
@@ -626,7 +631,7 @@ if get(handles.checkbox6,'value')
         imglist = dir([DataDir,filesep,inifd,filesep,subj{i},filesep,'*.nii']);  
         copyfile ([DataDir,filesep,inifd,filesep,subj{i},filesep,imglist(1).name],...
                   [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii'])  ;
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1B.nii']  ;
+        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1.nii']  ;
         SouData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']     ;
         OtherData = [DataDir,filesep,[inifd 'T'],filesep,subj{i},filesep,'fundata.nii']   ;
         TMScoregister(RefData,SouData,OtherData);
@@ -804,23 +809,57 @@ end
 
 %% Merge multi-runs
 if get (handles.ckbM,'value')
+    cd(DataDir)
     mkdir([inifd 'M']);
     i=1; 
+    
     while i <= length(subj) 
        
        if strcmp(subj{i}(end-4:end-1),'_Run')
              RunList =  dir([inifd,filesep,subj{i}(1:end-5),'_Run*']) 
             
+             %% These were added for align the head information of
+             %% multi-runs; Transfer to MNI and then transform back to T1
+             %% space
+             MATdir = [DataDir,filesep,'T1Img',filesep,subj{i}(1:end-5),filesep,'y_ac_coT1B.nii']
+             MATdirInv = [DataDir,filesep,'T1Img',filesep,subj{i}(1:end-5),filesep,'iy_ac_coT1B.nii']
+             ImgDir= [inifd,filesep,RunList(1).name,filesep,'fundata.nii'];
+             TMSwriteDTL(MATdir,ImgDir) ;
+             TMSwriteDTL(MATdirInv,[inifd,filesep,RunList(1).name,filesep,'wfundata.nii']) ;
+             delete([inifd,filesep,RunList(1).name,filesep,'wfundata.nii']) ;
+             delete([inifd,filesep,RunList(1).name,filesep,'fundata.nii']) ;
+             movefile([inifd,filesep,RunList(1).name,filesep,'wwfundata.nii'],...
+                      [inifd,filesep,RunList(1).name,filesep,'fundata.nii']) ;
+             %%
+             
              [head3 data3] = TMSReadNii([inifd,filesep,RunList(1).name,filesep,'fundata.nii']) ;
              data3=(data3-repmat(mean(data3')',[1,size(data3,2)]));
              for c = 2 :  length(RunList) % joint all sessions   
+                 
+             %% These were added for align the head information of
+             %% multi-runs; Transfer to MNI and then transform back to T1
+             %% space
+                 ImgDir= [inifd,filesep,RunList(c).name,filesep,'fundata.nii'];
+                 TMSwriteDTL(MATdir,ImgDir) ;
+                 TMSwriteDTL(MATdirInv,[inifd,filesep,RunList(c).name,filesep,'wfundata.nii']) ;
+                 delete([inifd,filesep,RunList(c).name,filesep,'wfundata.nii']) ;
+                 delete([inifd,filesep,RunList(c).name,filesep,'fundata.nii']) ;
+                 movefile([inifd,filesep,RunList(c).name,filesep,'wwfundata.nii'],...
+                          [inifd,filesep,RunList(c).name,filesep,'fundata.nii']) ;
+             %%
+                 
+                 
                 [head4 data4] = TMSReadNii([inifd,filesep,RunList(c).name,filesep,'fundata.nii']) ;
                 data4=(data4-repmat(mean(data4')',[1,size(data4,2)]));
                 data3 = [data3 data4] ;
+                head3 = [head3 ; head4] ;
+                
              end 
              mkdir([[inifd 'M'],filesep,subj{i}(1:end-5)]);
              TMSWriteNii(reshape(data3,head3(1).dim(1),head3(1).dim(2),head3(1).dim(3),size(data3,2)),head3,...
                         [[inifd 'M'],filesep,subj{i}(1:end-5),filesep,'fundata.nii']);
+                    
+                    
              clear data3 data4      
              i = i + length(RunList);
        else
@@ -832,7 +871,7 @@ if get (handles.ckbM,'value')
        end
      end
     
-    inifd = [inifd 'M'] ;; 
+    inifd = [inifd 'M'] ;
 end
 
     %% computing FC
@@ -875,25 +914,17 @@ end
         end
         
         subj = dir([DataDir,filesep,inifd]);
-      parfor i = 3 : length(subj)
+      for i = 3 : length(subj)
           if ~strcmp(subj(i).name(end-4:end-1),'_Run')
              TMSTargetSite([DataDir,filesep,'T1Img'],...
               [DataDir,filesep,inifdRes],subj(i).name,PosNeg,VoxThr);
-          end
+         
       end
+      
+end
 
-% subj = importdata([DataDir,filesep,'SubjList.txt']) 
-% 
-%       for i = 1 : length(subj)
-% %           if ~strcmp(subj{i}(end-4:end-1),'_Run')
-%           TMSTargetSite([DataDir,filesep,'T1Img'],[DataDir,filesep,inifd],subj{i},PosNeg,VoxThr);
-% %           end
-%       end
-%       
+
     end
-
-
-
    
 
 

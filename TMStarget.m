@@ -129,7 +129,7 @@ axes(handles.FigTMS);
  
 [ProgramPath, fileN, extn] = fileparts(which('TMStarget.m'));
 % h=imread([ProgramPath filesep,'TMStarget2.jpg']);
-imshow([ProgramPath filesep,'TMStarget2.jpg']);
- handles.output = hObject;
-guidata(hObject, handles);
+imshow([ProgramPath filesep,'TMStarget2.jpg']) ;
+ handles.output = hObject ;
+guidata(hObject, handles) ;
    

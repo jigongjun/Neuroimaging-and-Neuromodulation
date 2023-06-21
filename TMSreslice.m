@@ -1,4 +1,4 @@
-function OutVolume=TMSreslice(SampleDir,DataDir,OutDir,WriteOut)
+function OutVolume=TMSreslice(SampleDir,DataDir,OutDir,space,writeout)
 %Resample 3D matrix, such as in REST mask resampling operation
 %-----------------------------------------------------------
 %	Copyright(c) 2016~2020
@@ -10,9 +10,15 @@ function OutVolume=TMSreslice(SampleDir,DataDir,OutDir,WriteOut)
 %   DataDir -- image to be resliced
 %   OurDir -- where the resliced image would be saved
 %   cc = 0 (this default setting represents nearest interploation) 
+
+% This script modified in 20220729. the input "space" and "writeout" may be
+% problem, need further test.
+
 if nargin==3
-    WriteOut=1;
+    space=1 ;% change in 2022/7/29  default: change the space to sample space
+    writeout=1;
 end
+
 cc=0;
     SampleHeader = spm_vol(SampleDir) ;
     [SampleVol,SampleXYZ] = spm_read_vols(SampleHeader)  ;
@@ -21,13 +27,15 @@ cc=0;
    [DataVol,DataXYZ] = spm_read_vols(DataHeader)  ;
       
  %% Modified from REST software: http://www.restfmri.net
- if  WriteOut==1
-    mat=SampleHeader.mat;
-    dim=SampleHeader.dim;
- else                                             % this condition was added to keep the space, just change the voxel size
+ if  space==1
+     fprintf('change image to the sample space \n')
+    mat=SampleHeader(1,1).mat; % add the (1,1) in 20230611
+    dim=SampleHeader(1,1).dim; % add the (1,1) for fundata with multiple time points
+ else                         
+     fprintf('keep the space \n')
     origin=DataHeader.mat(1:3,4);
-%     NewVoxSize = [SampleHeader.dim(1) SampleHeader.dim(2) SampleHeader.dim(3)] 
-      NewVoxSize = sqrt(sum(SampleHeader.mat(1:3,1:3).^2)); ;
+%     NewVoxSize = [SampleHeader.dim(1) SampleHeader(1,1).dim(2) SampleHeader.dim(3)] 
+      NewVoxSize = sqrt(sum(SampleHeader(1,1).mat(1:3,1:3).^2)) % add the (1,1) in 20230611
     origin=origin+[DataHeader.mat(1,1);DataHeader.mat(2,2);DataHeader.mat(3,3)]-[NewVoxSize(1)*sign(DataHeader.mat(1,1));NewVoxSize(2)*sign(DataHeader.mat(2,2));NewVoxSize(3)*sign(DataHeader.mat(3,3))];
     origin=round(origin./NewVoxSize').*NewVoxSize';
     mat = [NewVoxSize(1)*sign(DataHeader.mat(1,1))                 0                                   0                       origin(1)
@@ -37,6 +45,7 @@ cc=0;
 
     dim=(DataHeader.dim-1).*diag(DataHeader.mat(1:3,1:3))';
     dim=floor(abs(dim./NewVoxSize))+1
+    
  end
 
 [x1,x2,x3] = ndgrid(1:dim(1),1:dim(2),1:dim(3));
@@ -61,12 +70,14 @@ Mask = Mask & (y3 >= (1-tiny) & y3 <= (DataHeader.dim(3)+tiny));
 
 OutVolume(~Mask) = 0;
 
+if writeout==1
    OutHead=DataHeader;
    OutHead.mat      =  mat;
   OutHead.dim(1:3) = dim;
   [pathx, fnamex, extensionx] = fileparts(DataDir) ;
   OutHead.fname    = [OutDir,filesep,strcat('r',fnamex,extensionx)] ;
   spm_write_vol(OutHead,OutVolume);
+end
 fprintf('Reslice Done \n')
 
 
