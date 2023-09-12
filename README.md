@@ -1,14 +1,16 @@
 # Neuroimaging-and-Neuromodulation
 
-This package provides the following useful tools:
+This package has two GUI-based tools (WhiteMatter and TMStarget) with common functions.
 
-fMRI preprocessing pipeline;
+# WhiteMatter toolbox
+ 
+It was developed for functional analsysis of brain white matter. 
 
-Functional analsysis for brain white matter (WhiteMatter GUI function);
+# TMStarget toolbox
 
-Individualized target definition for rTMS (TMStarget GUI function).
+It was developed for computing the individualized target of rTMS. 
 
-Requriement:
+# Requriement:
 This is a matlab toolbox. To use the full function of this package, you should add additional fMRI tools in your compute.
 1) AFQ: https://github.com/yeatmanlab/AFQ (for bundle-based WM function analysis)
 2) vistasoft:  https://github.com/vistalab/vistasoft (for bundle-based WM function analysis)
