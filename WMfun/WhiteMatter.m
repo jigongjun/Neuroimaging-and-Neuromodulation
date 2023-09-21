@@ -192,8 +192,10 @@ set(handles.editGroupWThr,'string','0.9','backgroundcolor',[0.94 0.94 0.94],...
 %% diffusion setting
 set(handles.ckbDTIDCM2NII,'string','DCM2NII','backgroundcolor',[0.94 0.94 0.94],...
                   'ForegroundColor',[0 0 0],'fontsize',0.47,'unit','normalized','pos',[0.16 0.94 0.6 0.06])
+set(handles.ckbDTITopup,'string','Topup','backgroundcolor',[0.94 0.94 0.94],...
+                  'ForegroundColor',[0 0 0],'fontsize',0.47,'unit','normalized','pos',[0.16 0.88 0.6 0.06])
 set(handles.ckbDTIBET,'string','BET','backgroundcolor',[0.94 0.94 0.94],...
-                  'ForegroundColor',[0 0 0],'fontsize',0.47,'unit','normalized','pos',[0.16 0.89 0.6 0.06])
+                  'ForegroundColor',[0 0 0],'fontsize',0.47,'unit','normalized','pos',[0.16 0.82 0.6 0.06])
 set(handles.ckbDTI2T1,'string','Coreg','backgroundcolor',[0.94 0.94 0.94],...
                   'ForegroundColor',[0 0 0],'fontsize',0.47,'unit','normalized','pos',[0.16 0.65 0.7 0.06])
 set(handles.rdbDiffQC,'string','QC','backgroundcolor',[0.94 0.94 0.94],...
@@ -598,6 +600,36 @@ if get(handles.ckbDTIDCM2NII,'value')
         delete([DataDir,filesep,'DTIImg',filesep,subj{i},filesep,TempImage(5).name]);
     end
 end
+    %% Add topup; combine two DTI data with different phase encoding
+    %% direction. Changed in 2023/09/15 by JGJ
+if get(handles.ckbDTITopup,'value')
+    cd([DataDir,filesep,'DTIImg']);
+    for i = 1 : 2 : length(subj) % each subject has two files
+         [headap dataap]= TMSReadNii([subj{i},filesep,'data.nii']) ;
+         [headpa datapa]= TMSReadNii([subj{i+1},filesep,'data.nii']) ;
+         TMSWriteNii(reshape([dataap(:,1) datapa(:,1)],...
+             headap(1,1).dim(1),headap(1,1).dim(2),headap(1,1).dim(3),2),...
+             headap,[subj{i},filesep,'data_appa_b0.nii']);
+         copyfile([subj{i+1},filesep,'data.nii'],[subj{i},filesep,'datapa.nii']) ;
+         copyfile( [BETPath,filesep,'para.txt'],[subj{i},filesep,'para.txt'] ) ;
+         copyfile( [BETPath,filesep,'b02b0.cnf'],[subj{i},filesep,'b02b0.cnf'] ) ;
+      
+        cmd = cat(2, 'sh ', [BETPath,filesep], 'topup.sh');
+        cd([subj{i}]) ;
+        system(cmd)
+        gunzip(['my_hifi_data.nii.gz']);
+        delete(['my_hifi_data.nii.gz']);
+        delete(['datapa.nii']);
+        
+        cd([DataDir,filesep,'DTIImg']);
+        mkdir(subj{i}(1:end-3)) ;
+        movefile([subj{i},filesep,'my_hifi_data.nii'],[subj{i}(1:end-3),filesep,'data.nii']) ;
+        copyfile( [subj{i},filesep,'bval'], [subj{i}(1:end-3),filesep,'bval']) ;
+        copyfile( [subj{i},filesep,'bvec'],[subj{i}(1:end-3),filesep,'bvec'] ) ;
+
+    end
+  
+end
 
 %% DTI bet
 if get(handles.ckbDTIBET,'value')
@@ -626,11 +658,7 @@ if get(handles.rdbDiffQC,'value')
    %% for quality control
     mkdir([DataDir,filesep,'QC4DiffCoreg']);
    for i = 1 : length(subj)
-      if strcmp(subj{i}(end-4:end-1),'_Run')
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i}(1:end-5),filesep,'ac_coT1.nii']  ;
-      else
-        RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1.nii']  ;
-      end
+      RefData = [DataDir,filesep,'T1Img',filesep,subj{i},filesep,'ac_coT1.nii']  ;
       SouData = [DataDir,filesep,inifd,filesep,subj{i},filesep,'dataB.nii']     ;
    imgs = {RefData [SouData ',1']};
    TMSSloverSPM(imgs,[DataDir,filesep,'QC4DiffCoreg',filesep,subj{i}]) ;
@@ -1486,3 +1514,12 @@ function text38_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to text38 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in ckbDTITopup.
+function ckbDTITopup_Callback(hObject, eventdata, handles)
+% hObject    handle to ckbDTITopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of ckbDTITopup
