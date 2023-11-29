@@ -1,0 +1,23 @@
+function ListSubj(SubjsDir,outname)
+
+if nargin==0
+  SubjsDir= uigetdir([],'select a input folder') ;
+  outname=
+end
+
+[DirPath, fileN, extn] = fileparts(SubjsDir);
+
+list = dir (SubjsDir) ;
+
+% if exist ([SubjsDir,filesep,'SubjList.txt'])
+%    delete ([SubjsDir,filesep,'SubjList.txt']) ;
+% end
+% cd(DirPath)
+
+for i = 3 : length(list)
+    fp=fopen([DirPath,filesep,'SubjList.txt'],'a') ;
+    fprintf(fp,'%s\r\n',[list(i).name]) ;
+    fclose(fp) ;
+end
+
+

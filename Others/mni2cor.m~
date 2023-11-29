@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% cor2mni
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cor = mni2cor(mni, T)
+% function mni = cor2mni(cor, T)
+% convert matrix coordinate to mni coordinate
+%
+% cor: an Nx3 matrix
+% T: (optional) rotation matrix
+% mni is the returned coordinate in mni space
+%
+% caution: if T is not given, the default T is
+% T = ...
+%     [-4     0     0    84;...
+%      0     4     0  -116;...
+%      0     0     4   -56;...
+%      0     0     0     1];
+%
+% xu cui
+% 2004-8-18
+% last revised: 2005-04-30
+
+if nargin == 1
+    T = ...
+        [-3     0     0    93;...
+         0     3     0  -129;...
+         0     0     3   -75;...
+         0     0     0     1];
+end
+T=T.*[-3     1     1    1;...
+         1     3     0  1;...
+        1     0     3   1;...
+         0     0     0     1];
+mni = round(mni);
+cor = inv(T)*[mni(:,1) mni(:,2) mni(:,3) ones(size(mni,1),1)]';
+cor = cor';
+cor(:,4) = [];
+return;

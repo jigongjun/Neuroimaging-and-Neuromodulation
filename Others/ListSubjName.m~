@@ -1,0 +1,15 @@
+function ListSubj(SubjsFolder)
+
+[DirPath, fileN, extn] = fileparts(SubjsFolder);
+
+list = dir (SubjsFolder)
+if exist ([DirPath,filesep,'SubjList.txt'])
+    delete 
+for i = 3 : length(list)
+    fp=fopen('SubjList.txt','a')
+    fprintf(fp,'%s\r\n',[list(i).name]) ;
+
+fclose(fp)
+end
+
+

@@ -1,0 +1,82 @@
+function FuncHomoConn
+
+path = 'FunImgS12DARTCSW'
+outdir = '/mnt/NCPL03/PD_MRIdate/Results_FuncHomoConn'
+% maskdir = '/mnt/NCPL03/PD_MRIdate/GroupLevelMask_Resliced/Resliced_WMProb90.nii'
+% rThr = 0.25 ;
+
+sublist = dir (path)
+[TMSPath, fileN, extn] = fileparts(which('TMStarget.m'))  ;
+[mhead mdata] = TMSReadNii ([TMSPath,filesep,'template',filesep,...
+                'tpm',filesep,'grey333.nii']) ;
+
+dim1  = mhead.dim(1); dim2  = mhead.dim(2) ;dim3 = mhead.dim(3) ;
+mdata = reshape(mdata,dim1,dim2,dim3) ;
+lmdata = mdata; rmdata = mdata;
+
+lmdata(round(dim1/2)-1:dim1,:,:) = 0 ;  
+lmdata = reshape (lmdata,dim1*dim2*dim3,1) ;
+
+rmdata(floor(1:dim1/2)+2,:,:) = 0 ;
+rmdata = reshape (rmdata,dim1*dim2*dim3,1) ;
+
+ [alm blm] = find(lmdata) ; % lm short for Left Mask hemisphere
+ [arm brm] = find(rmdata) ;
+     
+fprintf('\n FuncHomoConn Calculating...');
+
+%% To get the group level homotopic voxels' location
+RLRsum=zeros(size(alm,1),size(arm,1));
+for i = 3 : length(sublist)
+    i-2
+   imglist = dir ([path,filesep,sublist(i).name,filesep,'*.nii'])  ;
+   [head data] = TMSReadNii(...
+                 [path,filesep,sublist(i).name,filesep,imglist(1).name]) ;
+   RLRsum = RLRsum + TMSfastCorr(data(alm,:)',data(arm,:)') ;
+end
+
+[maxR LocR]= max(RLRsum,[],2);
+[maxL LocL] = max(RLRsum); 
+LocL=LocL';
+
+%% computing HFC using the homotopically paired voxels
+
+parfor k = 3 : length (sublist)
+    k-2
+   LAI = zeros (dim1*dim2*dim3,1) ;
+   [head data] = TMSReadNii(...
+         [path,filesep,sublist(k).name,filesep,imglist(1).name]) ;
+   RLRi = TMSfastCorr(data(alm,:)',data(arm,:)') ;
+   Lmaxval = zeros(size(LocR,1),1) ;
+   for jj = 1 : length(LocR)
+       RLRil = RLRi(jj,:) ;
+       Lmaxval(jj,1) =  RLRil(LocR(jj,1))  ;
+   end
+   LAI(alm) =  Lmaxval;
+
+   RAI = zeros (dim1*dim2*dim3,1) ;
+   RRLi = RLRi';
+   Rmaxval = zeros(size(LocL,1),1) ;
+   for ii = 1 : length(LocL)
+       RRLil = RRLi(ii,:) ;
+       Rmaxval(ii,1) =  RRLil(LocL(ii,1))  ;
+   end
+   RAI(arm) =  Rmaxval;
+   
+   HFC = RAI+LAI ;   zHFC=HFC;
+   [HFCa HFCb] = find(HFC) ;
+   HFC2 = (HFC(HFCa)-mean(HFC(HFCa),1))/std(HFC(HFCa),1);
+   zHFC(HFCa) = HFC2 ;
+   TMSWriteNii (reshape(zHFC,dim1,dim2,dim3),mhead,[outdir,filesep,'z' sublist(k).name '_HFC.nii'])
+
+%    mHFC = HFC/mean(HFC(find(HFC)),1);
+%    TMSWriteNii (reshape(mHFC,dim1,dim2,dim3),mhead,[outdir,filesep,'m' sublist(k).name '_HFC.nii'])
+
+end
+
+
+
+
+
+
+ 

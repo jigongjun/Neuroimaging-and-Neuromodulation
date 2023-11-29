@@ -1,0 +1,69 @@
+function FCAsymIndex
+
+path = '/mnt/NCPL09/TMSRobustArticle/CBTRTData/FunImgARTCSF'
+outdir = '/mnt/NCPL09/TMSRobustArticle/CBTRTData/CFHReliability'
+maskdir = '/mnt/NCPL03/PD_MRIdate/GroupLevelMask_Resliced/Resliced_WMProb90.nii'
+rThr = 0.25 ;
+
+sublist = dir (path)
+[TMSPath, fileN, extn] = fileparts(which('TMStarget.m'))  ;
+[mhead mdata] = TMSReadNii ([TMSPath,filesep,'template',filesep,...
+                'tpm',filesep,'grey333.nii']) ;
+
+[mhead mdata] = TMSReadNii ([maskdir]) ;
+           
+            
+            
+dim1  = mhead.dim(1); dim2  = mhead.dim(2) ;dim3 = mhead.dim(3) ;
+mdata = reshape(mdata,dim1,dim2,dim3) ;
+lmdata = mdata; rmdata = mdata;
+
+lmdata(round(dim1/2)+1:dim1,:,:) = 0 ;  
+lmdata = reshape (lmdata,dim1*dim2*dim3,1) ;
+
+rmdata(floor(1:dim1/2),:,:) = 0 ;
+rmdata = reshape (rmdata,dim1*dim2*dim3,1) ;
+VNLH = size(find(lmdata==1),1) ;
+VNRH = size(find(rmdata==1),1)  ;
+
+fprintf('\n FC-based AI Calculating...');
+
+for i = 3 : length (sublist)
+%     mkdir([outdir,filesep,sublist(i).name]) ;
+    i-2
+   imglist = dir ([path,filesep,sublist(i).name,filesep,'*.nii'])  ;
+   [head data] = TMSReadNii(...
+                 [path,filesep,sublist(i).name,filesep,imglist(1).name]) ;
+     [alm blm] = find(lmdata) ; % lm short for Left Mask hemisphere
+     [arm brm] = find(rmdata) ;
+     
+            RLL = TMSfastCorr(data(alm,:)',data(alm,:)') ;  
+            RLL(isnan(RLL))=0; % RLL sort for Rvalue in Left correlate Light hemi.
+            RLR = TMSfastCorr(data(alm,:)',data(arm,:)') ;
+            RLR(isnan(RLR))=0;
+            RRL = TMSfastCorr(data(arm,:)',data(alm,:)') ;
+            RRL(isnan(RLR))=0;
+            RRR = TMSfastCorr(data(arm,:)',data(arm,:)') ;
+            RRR(isnan(RRR))=0;
+            
+    for j = 1 : size(RLL,1)
+        L_L2L(j) = size(find(RLL(j,:)>rThr),2)  ;
+        L_L2R(j) = size(find(RLR(j,:)>rThr),2)  ;
+    end
+    LAI = zeros (dim1*dim2*dim3,1) ;
+    LAI(alm) = (L_L2L/size(alm,1))-(L_L2R/size(arm,1)) ;
+    
+    for j = 1 : size(RRR,1)
+        L_R2L(j) = size(find(RRL(j,:)>rThr),2)  ;
+        L_R2R(j) = size(find(RRR(j,:)>rThr),2)  ;
+    end
+    RAI = zeros (dim1*dim2*dim3,1) ;
+    RAI(arm) = (L_R2R/size(arm,1))-(L_R2L/size(alm,1)) ;
+%  fprintf(' .');
+ TMSWriteNii (reshape(RAI+LAI,dim1,dim2,dim3),mhead,[outdir,filesep,sublist(i).name '_AI.nii'])
+end
+ 
+
+
+   
+   
