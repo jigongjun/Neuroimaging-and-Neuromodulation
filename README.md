@@ -1,6 +1,6 @@
 # Neuroimaging-and-Neuromodulation
 
-This package has two GUI-based tools (WhiteMatter and TMStarget) with common functions.
+Neuroimage has been used to investigate how the brain works for decades. But only in the past 10 years, fMRI has become a promising way to guide clinical treatment, such as repetitive transcranial stimulation (rTMS) for major depression disorder. In this background, we initiated a Neuroimaging-and-Neruomodulation project that aimed to develop a toolbox connecting imaging findings to rTMS treatment. Recently, we have developed two GUI-based tools, WhiteMatter and TMStarget.
 
 # WhiteMatter toolbox
  
